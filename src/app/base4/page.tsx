@@ -1,10 +1,28 @@
+"use client";
+
+import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 
 export default function Base4Page() {
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
+
   return (
-    <div className="flex min-h-screen bg-[#FAFBFD]">
-      <Sidebar currentBase={4} />
-      <main className="flex-1 ml-[88px] p-[24px] transition-all duration-300">
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        backgroundColor: "#FAFBFD",
+      }}
+    >
+      <Sidebar currentBase={4} onExpandChange={setSidebarExpanded} />
+      <main
+        style={{
+          flex: 1,
+          marginLeft: sidebarExpanded ? "260px" : "88px",
+          padding: "24px",
+          transition: "margin-left 0.3s",
+        }}
+      >
         {/* Contenido principal - Base 4 */}
       </main>
     </div>

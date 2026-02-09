@@ -1,10 +1,28 @@
+"use client";
+
+import { useState } from "react";
 import Sidebar from "@/components/Sidebar";
 
 export default function BasePage() {
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
+
   return (
-    <div className="flex min-h-screen bg-[#FAFBFD]">
-      <Sidebar currentBase={0} />
-      <main className="flex-1 ml-[88px] p-[2.4rem] transition-all duration-300">
+    <div
+      style={{
+        display: "flex",
+        minHeight: "100vh",
+        backgroundColor: "#FAFBFD",
+      }}
+    >
+      <Sidebar currentBase={0} onExpandChange={setSidebarExpanded} />
+      <main
+        style={{
+          flex: 1,
+          marginLeft: sidebarExpanded ? "260px" : "88px",
+          padding: "24px",
+          transition: "margin-left 0.3s",
+        }}
+      >
         {/* Contenido principal aquí */}
       </main>
     </div>

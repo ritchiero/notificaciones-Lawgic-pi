@@ -26,6 +26,7 @@ interface MenuItem {
 
 interface SidebarProps {
   currentBase?: number;
+  onExpandChange?: (expanded: boolean) => void;
 }
 
 const menuItems: MenuItem[] = [
@@ -44,12 +45,17 @@ const baseRoutes = ["/base", "/base1", "/base2", "/base3", "/base4"];
 
 const baseLabels = ["base", "base 1", "base 2", "base 3", "base 4"];
 
-export default function Sidebar({ currentBase = 0 }: SidebarProps) {
+export default function Sidebar({ currentBase = 0, onExpandChange }: SidebarProps) {
   const nextBase = (currentBase + 1) % 5;
   const nextRoute = baseRoutes[nextBase];
   const displayName = currentBase === 0 ? "base" : `base ${currentBase}`;
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleExpand = (value: boolean) => {
+    setExpanded(value);
+    onExpandChange?.(value);
+  };
 
   return (
     <aside
@@ -63,9 +69,9 @@ export default function Sidebar({ currentBase = 0 }: SidebarProps) {
         paddingLeft: "20px",
         paddingRight: "20px"
       }}
-      onMouseEnter={() => setExpanded(true)}
+      onMouseEnter={() => handleExpand(true)}
       onMouseLeave={() => {
-        setExpanded(false);
+        handleExpand(false);
         setMenuOpen(false);
       }}
     >
@@ -79,14 +85,25 @@ export default function Sidebar({ currentBase = 0 }: SidebarProps) {
           paddingLeft: expanded ? "12px" : "0"
         }}
       >
-        <Image
-          src="/images/logo-lawgic.png"
-          alt="Lawgic"
-          width={expanded ? 110 : 28}
-          height={expanded ? 36 : 28}
-          className="object-contain"
-          priority
-        />
+        {expanded ? (
+          <Image
+            src="/images/logo-lawgic.png"
+            alt="Lawgic"
+            width={110}
+            height={36}
+            className="object-contain"
+            priority
+          />
+        ) : (
+          <Image
+            src="/images/Isotipo.png"
+            alt="Lawgic"
+            width={36}
+            height={36}
+            className="object-contain"
+            priority
+          />
+        )}
       </div>
 
       {/* Menu Items */}

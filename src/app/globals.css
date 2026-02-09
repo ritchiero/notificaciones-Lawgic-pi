@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@source "../components/**/*.tsx";
+@source "./**/*.tsx";
+
 @theme {
   /* Base font size: 62.5% = 1rem = 10px */
   --font-size-xs: 1rem;
