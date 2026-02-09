@@ -458,10 +458,12 @@ const getTypeLabel = (type: NotificationType) => {
   }
 };
 
+type FilterType = "all" | "urgente" | "oficio" | "oposicion" | "concesion" | "recordatorio" | "plazos";
+
 export default function NotificationInbox() {
   const [notifications, setNotifications] = useState(mockNotifications);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [filter, setFilter] = useState<"all" | "unread" | "starred" | "plazos">("all");
+  const [filter, setFilter] = useState<FilterType>("all");
   const [modalNotificationId, setModalNotificationId] = useState<string | null>(null);
 
   const toggleStar = (id: string) => {
@@ -482,16 +484,21 @@ export default function NotificationInbox() {
     );
   };
 
-  // Count notifications with deadlines
-  const plazosCount = notifications.filter((n) => n.diasRestantes !== undefined).length;
+  // Count notifications by type
+  const typeCounts = {
+    urgente: notifications.filter((n) => n.type === "urgente").length,
+    oficio: notifications.filter((n) => n.type === "oficio").length,
+    oposicion: notifications.filter((n) => n.type === "oposicion").length,
+    concesion: notifications.filter((n) => n.type === "concesion").length,
+    recordatorio: notifications.filter((n) => n.type === "recordatorio").length,
+    plazos: notifications.filter((n) => n.diasRestantes !== undefined).length,
+  };
 
   const filteredNotifications = (() => {
     let result = notifications;
 
-    if (filter === "unread") {
-      result = notifications.filter((n) => !n.read);
-    } else if (filter === "starred") {
-      result = notifications.filter((n) => n.starred);
+    if (filter === "urgente" || filter === "oficio" || filter === "oposicion" || filter === "concesion" || filter === "recordatorio") {
+      result = notifications.filter((n) => n.type === filter);
     } else if (filter === "plazos") {
       result = notifications
         .filter((n) => n.diasRestantes !== undefined)
@@ -577,38 +584,99 @@ export default function NotificationInbox() {
           borderBottom: "1px solid #E5E7EB",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          {/* Filter tabs */}
-          <div style={{ display: "flex", gap: "4px" }}>
-            {[
-              { key: "all", label: "Todas" },
-              { key: "unread", label: "Sin leer" },
-              { key: "starred", label: "Destacadas" },
-              { key: "plazos", label: `Plazos y términos (${plazosCount})` },
-            ].map((tab) => (
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+          {/* Regular filter tabs */}
+          {[
+            { key: "all", label: "Todas", color: "#4570EB", bg: "#EEF2FF" },
+            { key: "urgente", label: `Urgente (${typeCounts.urgente})`, color: "#DC2626", bg: "#FEE2E2" },
+            { key: "oficio", label: `Oficio (${typeCounts.oficio})`, color: "#2563EB", bg: "#DBEAFE" },
+            { key: "oposicion", label: `Oposición (${typeCounts.oposicion})`, color: "#D97706", bg: "#FEF3C7" },
+            { key: "concesion", label: `Concesión (${typeCounts.concesion})`, color: "#16A34A", bg: "#DCFCE7" },
+            { key: "recordatorio", label: `Recordatorio (${typeCounts.recordatorio})`, color: "#9333EA", bg: "#F3E8FF" },
+          ].map((tab) => {
+            const isActive = filter === tab.key;
+            return (
               <button
                 key={tab.key}
-                onClick={() => setFilter(tab.key as typeof filter)}
+                onClick={() => setFilter(tab.key as FilterType)}
                 style={{
-                  padding: "6px 12px",
-                  fontSize: "13px",
-                  fontWeight: filter === tab.key ? 500 : 400,
-                  color: filter === tab.key ? "#4570EB" : "#6B7280",
-                  backgroundColor: filter === tab.key ? "#EEF2FF" : "transparent",
-                  border: "none",
+                  padding: "5px 10px",
+                  fontSize: "12px",
+                  fontWeight: isActive ? 600 : 400,
+                  color: isActive ? tab.color : "#6B7280",
+                  backgroundColor: isActive ? tab.bg : "transparent",
+                  border: isActive ? `1px solid ${tab.color}30` : "1px solid transparent",
                   borderRadius: "6px",
                   cursor: "pointer",
                   transition: "all 0.15s",
                   display: "flex",
                   alignItems: "center",
-                  gap: "6px",
+                  gap: "4px",
                 }}
               >
-                {tab.key === "plazos" && <Calendar size={13} />}
+                {tab.key === "urgente" && <AlertTriangle size={11} />}
+                {tab.key === "oficio" && <FileText size={11} />}
+                {tab.key === "oposicion" && <Gavel size={11} />}
+                {tab.key === "concesion" && <CheckCircle size={11} />}
+                {tab.key === "recordatorio" && <Clock size={11} />}
                 {tab.label}
               </button>
-            ))}
-          </div>
+            );
+          })}
+
+          {/* Vertical separator */}
+          <div
+            style={{
+              width: "1px",
+              height: "24px",
+              backgroundColor: "#E5E7EB",
+              marginLeft: "8px",
+              marginRight: "8px",
+            }}
+          />
+
+          {/* Plazos y términos - Highlighted button */}
+          <button
+            onClick={() => setFilter("plazos")}
+            style={{
+              padding: "8px 14px",
+              fontSize: "13px",
+              fontWeight: 600,
+              color: filter === "plazos" ? "#fff" : "#B45309",
+              backgroundColor: filter === "plazos" ? "#D97706" : "#FEF3C7",
+              border: filter === "plazos" ? "1px solid #B45309" : "1px solid #FCD34D",
+              borderRadius: "8px",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              boxShadow: filter === "plazos"
+                ? "0 2px 8px rgba(217, 119, 6, 0.3)"
+                : "0 1px 3px rgba(0, 0, 0, 0.08)",
+            }}
+          >
+            <Calendar size={15} strokeWidth={2.5} />
+            <span>Plazos y términos</span>
+            {/* Badge with count */}
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minWidth: "22px",
+                height: "20px",
+                padding: "0 6px",
+                borderRadius: "10px",
+                backgroundColor: filter === "plazos" ? "#fff" : "#DC2626",
+                color: filter === "plazos" ? "#D97706" : "#fff",
+                fontSize: "11px",
+                fontWeight: 700,
+              }}
+            >
+              {typeCounts.plazos}
+            </span>
+          </button>
         </div>
 
         {/* Actions */}
@@ -780,28 +848,9 @@ export default function NotificationInbox() {
                   </button>
                 </div>
 
-                {/* Type Badge - compact */}
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    padding: "2px 8px",
-                    borderRadius: "4px",
-                    backgroundColor: typeStyle.bg,
-                    color: typeStyle.color,
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    flexShrink: 0,
-                  }}
-                >
-                  {getTypeIcon(notification.type, 12)}
-                  <span>{getTypeLabel(notification.type)}</span>
-                </div>
-
                 {/* Main Content - 2 rows (or 3 rows for plazo view) */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  {/* Row 1: Title + Client + Days badge */}
+                  {/* Row 1: Title + Client */}
                   <div
                     style={{
                       display: "flex",
@@ -835,32 +884,9 @@ export default function NotificationInbox() {
                         </span>
                       </>
                     )}
-                    {!isPlazoView && notification.diasRestantes && notification.diasRestantes <= 30 && (
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "3px",
-                          padding: "1px 6px",
-                          borderRadius: "3px",
-                          backgroundColor:
-                            notification.diasRestantes <= 5 ? "#FEE2E2" :
-                            notification.diasRestantes <= 15 ? "#FEF3C7" : "#E0F2FE",
-                          color:
-                            notification.diasRestantes <= 5 ? "#DC2626" :
-                            notification.diasRestantes <= 15 ? "#D97706" : "#0369A1",
-                          fontSize: "10px",
-                          fontWeight: 600,
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        <Clock size={10} />
-                        {notification.diasRestantes}d
-                      </span>
-                    )}
                   </div>
 
-                  {/* Row 2: Expediente + Description + Time */}
+                  {/* Row 2: Expediente + Description */}
                   <div
                     style={{
                       display: "flex",
@@ -896,9 +922,6 @@ export default function NotificationInbox() {
                       }}
                     >
                       {notification.description}
-                    </span>
-                    <span style={{ color: "#9CA3AF", whiteSpace: "nowrap", flexShrink: 0 }}>
-                      · {notification.date}
                     </span>
                   </div>
 
@@ -958,21 +981,71 @@ export default function NotificationInbox() {
                   )}
                 </div>
 
-                {/* More options */}
-                <button
-                  onClick={(e) => e.stopPropagation()}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    padding: "4px",
-                    cursor: "pointer",
-                    display: "flex",
-                    borderRadius: "4px",
-                    flexShrink: 0,
-                  }}
-                >
-                  <MoreHorizontal size={14} color="#9CA3AF" />
-                </button>
+                {/* Right section: Type badge + Days badge + Timestamp + More options */}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                  {/* Type Badge */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      padding: "2px 8px",
+                      borderRadius: "4px",
+                      backgroundColor: typeStyle.bg,
+                      color: typeStyle.color,
+                      fontSize: "11px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {getTypeIcon(notification.type, 12)}
+                    <span>{getTypeLabel(notification.type)}</span>
+                  </div>
+
+                  {/* Days remaining badge */}
+                  {!isPlazoView && notification.diasRestantes && notification.diasRestantes <= 30 && (
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "3px",
+                        padding: "2px 6px",
+                        borderRadius: "4px",
+                        backgroundColor:
+                          notification.diasRestantes <= 5 ? "#FEE2E2" :
+                          notification.diasRestantes <= 15 ? "#FEF3C7" : "#E0F2FE",
+                        color:
+                          notification.diasRestantes <= 5 ? "#DC2626" :
+                          notification.diasRestantes <= 15 ? "#D97706" : "#0369A1",
+                        fontSize: "10px",
+                        fontWeight: 600,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      <Clock size={10} />
+                      {notification.diasRestantes}d
+                    </span>
+                  )}
+
+                  {/* Timestamp */}
+                  <span style={{ color: "#9CA3AF", fontSize: "12px", whiteSpace: "nowrap" }}>
+                    {notification.date}
+                  </span>
+
+                  {/* More options */}
+                  <button
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: "4px",
+                      cursor: "pointer",
+                      display: "flex",
+                      borderRadius: "4px",
+                    }}
+                  >
+                    <MoreHorizontal size={14} color="#9CA3AF" />
+                  </button>
+                </div>
               </div>
             </div>
           );
